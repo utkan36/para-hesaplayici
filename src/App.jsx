@@ -32,11 +32,13 @@ const INITIAL_ARCHIVE_RATES = {
 };
 
 export default function App() {
+  const queryParams = new URLSearchParams(window.location.search);
+
   const [archiveRates, setArchiveRates] = useState(INITIAL_ARCHIVE_RATES);
-  const [calcMode, setCalcMode] = useState('dca');
-  const [amount, setAmount] = useState(1000);
-  const [startYear, setStartYear] = useState('2021');
-  const [targetYear, setTargetYear] = useState('2026');
+  const [calcMode, setCalcMode] = useState(queryParams.get('mode') || 'dca');
+  const [amount, setAmount] = useState(Number(queryParams.get('amount')) || 1000);
+  const [startYear, setStartYear] = useState(queryParams.get('start') || '2021');
+  const [targetYear, setTargetYear] = useState(queryParams.get('target') || '2026');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [comparisonResults, setComparisonResults] = useState(null);
   const [isApiLoading, setIsApiLoading] = useState(true);
@@ -144,7 +146,20 @@ export default function App() {
     link.download = `yatirim-analizi-${startYear}-${targetYear}.png`;
     link.click();
   };
+const getShareableUrl = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('amount', amount);
+    url.searchParams.set('start', startYear);
+    url.searchParams.set('target', targetYear);
+    url.searchParams.set('mode', calcMode);
+    return url.toString();
+  };
 
+  const handleShareWhatsApp = () => {
+    const shareUrl = getShareableUrl();
+    const message = `Finansal Simülasyon Sonucum: ${startYear}-${targetYear} yılları arası ${amount.toLocaleString('tr-TR')} ₺ yatırımı incele: ${shareUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+  };
   const applyPreset = (presetAmount, presetStart, presetTarget, mode) => {
     setAmount(presetAmount);
     setStartYear(presetStart);
@@ -351,12 +366,7 @@ export default function App() {
               </div>
             </div>
 
-            <button 
-              onClick={handleDownloadImage}
-              className="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              📸 Sonucu Görsel (PNG) Olarak İndir / Paylaş
-            </button>
+           className="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700
           </div>
         )}
 
