@@ -11,30 +11,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-// PWA Yukleme Prompt State'i
-const [deferredPrompt, setDeferredPrompt] = useState(null);
 
-useEffect(() => {
-  const handleBeforeInstallPrompt = (e) => {
-    e.preventDefault();
-    setDeferredPrompt(e);
-  };
-
-  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-  return () => {
-    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  };
-}, []);
-
-const handleInstallPWA = async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') {
-    setDeferredPrompt(null);
-  }
-};
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -63,10 +40,26 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [comparisonResults, setComparisonResults] = useState(null);
   const [isApiLoading, setIsApiLoading] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   const resultCardRef = useRef(null);
   const years = Object.keys(archiveRates);
 
+  // PWA Yukleme Prompt Dinleyicisi
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  // Canli Kur Cekme
   useEffect(() => {
     async function fetchLiveRates() {
       try {
@@ -98,6 +91,15 @@ export default function App() {
 
     fetchLiveRates();
   }, []);
+
+  const handleInstallPWA = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   const handleCalculate = () => {
     const selectedYears = years.filter(y => y >= startYear && y <= targetYear);
@@ -176,14 +178,7 @@ export default function App() {
   return (
     <div className={`min-h-screen transition-colors duration-300 flex items-center justify-center p-4 font-sans ${isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
       <div className={`w-full max-w-3xl rounded-2xl shadow-xl border p-6 md:p-8 transition-colors duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
-        {deferredPrompt && (
-  <button 
-    onClick={handleInstallPWA}
-    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-md transition flex items-center gap-1 cursor-pointer"
-  >
-    📲 Uygulamayı Yükle
-  </button>
-)}
+        
         {/* Üst Bar */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
@@ -194,12 +189,23 @@ export default function App() {
               {isApiLoading ? 'Kur Yükleniyor...' : `USD: ₺${archiveRates["2026"].USD} | EUR: ₺${archiveRates["2026"].EUR}`}
             </span>
           </div>
-          <button 
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${isDarkMode ? 'bg-slate-700 border-slate-600 text-amber-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`}
-          >
-            {isDarkMode ? '☀️ Aydınlık' : '🌙 Koyu'}
-          </button>
+
+          <div className="flex items-center gap-2">
+            {deferredPrompt && (
+              <button 
+                onClick={handleInstallPWA}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-md transition flex items-center gap-1 cursor-pointer"
+              >
+                📲 Uygulamayı Yükle
+              </button>
+            )}
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${isDarkMode ? 'bg-slate-700 border-slate-600 text-amber-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`}
+            >
+              {isDarkMode ? '☀️ Aydınlık' : '🌙 Koyu'}
+            </button>
+          </div>
         </div>
 
         {/* Hazır Senaryolar */}
