@@ -23,12 +23,12 @@ ChartJS.register(
 );
 
 const INITIAL_ARCHIVE_RATES = {
-  "2021": { USD: 8.8, EUR: 10.4, ALTIN: 450, BIST: 1400, TUFE: 600 },
-  "2022": { USD: 16.5, EUR: 17.3, ALTIN: 1000, BIST: 2400, TUFE: 950 },
-  "2023": { USD: 23.8, EUR: 25.7, ALTIN: 1650, BIST: 5500, TUFE: 1550 },
-  "2024": { USD: 32.5, EUR: 35.1, ALTIN: 2400, BIST: 9000, TUFE: 2300 },
-  "2025": { USD: 36.2, EUR: 39.0, ALTIN: 3100, BIST: 10500, TUFE: 3100 },
-  "2026": { USD: 43.0, EUR: 46.5, ALTIN: 3800, BIST: 12500, TUFE: 3900 }
+  "2021": { USD: 8.8, EUR: 10.4, ALTIN: 450, BIST: 1400, TUFE: 600, FAIZ: 1180, BTC: 250000 },
+  "2022": { USD: 16.5, EUR: 17.3, ALTIN: 1000, BIST: 2400, TUFE: 950, FAIZ: 1420, BTC: 290000 },
+  "2023": { USD: 23.8, EUR: 25.7, ALTIN: 1650, BIST: 5500, TUFE: 1550, FAIZ: 1850, BTC: 700000 },
+  "2024": { USD: 32.5, EUR: 35.1, ALTIN: 2400, BIST: 9000, TUFE: 2300, FAIZ: 2700, BTC: 2200000 },
+  "2025": { USD: 36.2, EUR: 39.0, ALTIN: 3100, BIST: 10500, TUFE: 3100, FAIZ: 3800, BTC: 3100000 },
+  "2026": { USD: 43.0, EUR: 46.5, ALTIN: 3800, BIST: 12500, TUFE: 3900, FAIZ: 5100, BTC: 3900000 }
 };
 
 export default function App() {
@@ -103,7 +103,7 @@ export default function App() {
     }
   };
 
-  const handleCalculate = () => {
+const handleCalculate = () => {
     const selectedYears = years.filter(y => y >= startYear && y <= targetYear);
     const target = archiveRates[targetYear];
 
@@ -116,10 +116,12 @@ export default function App() {
         ALTIN: amount * (target.ALTIN / start.ALTIN),
         BIST: amount * (target.BIST / start.BIST),
         TUFE: amount * (target.TUFE / start.TUFE),
+        FAIZ: amount * (target.FAIZ / start.FAIZ),
+        BTC: amount * (target.BTC / start.BTC),
       });
     } else {
       let totalInvested = 0;
-      let totals = { USD: 0, EUR: 0, ALTIN: 0, BIST: 0, TUFE: 0 };
+      let totals = { USD: 0, EUR: 0, ALTIN: 0, BIST: 0, TUFE: 0, FAIZ: 0, BTC: 0 };
 
       selectedYears.forEach(year => {
         const rates = archiveRates[year];
@@ -131,6 +133,8 @@ export default function App() {
         totals.ALTIN += yearlyContribution * (target.ALTIN / rates.ALTIN);
         totals.BIST += yearlyContribution * (target.BIST / rates.BIST);
         totals.TUFE += yearlyContribution * (target.TUFE / rates.TUFE);
+        totals.FAIZ += yearlyContribution * (target.FAIZ / rates.FAIZ);
+        totals.BTC += yearlyContribution * (target.BTC / rates.BTC);
       });
 
       setComparisonResults({ totalInvested, ...totals });
@@ -174,13 +178,15 @@ export default function App() {
     setCalcMode(mode);
   };
 
-  const chartData = {
+ const chartData = {
     labels: years,
     datasets: [
       { label: 'USD (Dolar)', data: years.map(y => archiveRates[y].USD), borderColor: '#10b981', tension: 0.3 },
       { label: 'EUR (Euro)', data: years.map(y => archiveRates[y].EUR), borderColor: '#3b82f6', tension: 0.3 },
       { label: 'Gram Altın (₺/100)', data: years.map(y => archiveRates[y].ALTIN / 100), borderColor: '#eab308', tension: 0.3 },
       { label: 'BIST 100 (/100)', data: years.map(y => archiveRates[y].BIST / 100), borderColor: '#a855f7', tension: 0.3 },
+      { label: 'Mevduat Faizi (/100)', data: years.map(y => archiveRates[y].FAIZ / 100), borderColor: '#06b6d4', tension: 0.3 },
+      { label: 'Bitcoin (₺/10.000)', data: years.map(y => archiveRates[y].BTC / 10000), borderColor: '#f97316', tension: 0.3 },
       { label: 'TÜFE (/100)', data: years.map(y => archiveRates[y].TUFE / 100), borderColor: '#ef4444', tension: 0.3 },
     ],
   };
@@ -339,7 +345,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-center">
+<div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
                 <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                   <span className="text-[10px] font-bold text-emerald-500 uppercase">Dolar</span>
                   <div className="text-sm font-extrabold text-emerald-600 mt-1">
@@ -364,8 +370,20 @@ export default function App() {
                     {comparisonResults.BIST.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
                   </div>
                 </div>
-                <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl col-span-2 md:col-span-1">
-                  <span className="text-[10px] font-bold text-rose-500 uppercase">TÜFE</span>
+                <div className="p-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                  <span className="text-[10px] font-bold text-cyan-500 uppercase">Mevduat Faizi</span>
+                  <div className="text-sm font-extrabold text-cyan-600 mt-1">
+                    {comparisonResults.FAIZ?.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
+                  </div>
+                </div>
+                <div className="p-2.5 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+                  <span className="text-[10px] font-bold text-orange-500 uppercase">Bitcoin</span>
+                  <div className="text-sm font-extrabold text-orange-600 mt-1">
+                    {comparisonResults.BTC?.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
+                  </div>
+                </div>
+                <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl col-span-2 md:col-span-2">
+                  <span className="text-[10px] font-bold text-rose-500 uppercase">TÜFE Enflasyonu</span>
                   <div className="text-sm font-extrabold text-rose-600 mt-1">
                     {comparisonResults.TUFE.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
                   </div>
