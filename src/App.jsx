@@ -11,7 +11,30 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+// PWA Yukleme Prompt State'i
+const [deferredPrompt, setDeferredPrompt] = useState(null);
 
+useEffect(() => {
+  const handleBeforeInstallPrompt = (e) => {
+    e.preventDefault();
+    setDeferredPrompt(e);
+  };
+
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+  return () => {
+    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  };
+}, []);
+
+const handleInstallPWA = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    setDeferredPrompt(null);
+  }
+};
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -44,7 +67,6 @@ export default function App() {
   const resultCardRef = useRef(null);
   const years = Object.keys(archiveRates);
 
-  // Canlı Kur Çekme İşlemi (Ücretsiz Frankfurter API)
   useEffect(() => {
     async function fetchLiveRates() {
       try {
@@ -68,7 +90,7 @@ export default function App() {
           }));
         }
       } catch (err) {
-        console.error("Canlı kurlar çekilemedi, varsayılan veriler kullanılıyor:", err);
+        console.error("Canlı kurlar çekilemedi:", err);
       } finally {
         setIsApiLoading(false);
       }
@@ -154,7 +176,14 @@ export default function App() {
   return (
     <div className={`min-h-screen transition-colors duration-300 flex items-center justify-center p-4 font-sans ${isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
       <div className={`w-full max-w-3xl rounded-2xl shadow-xl border p-6 md:p-8 transition-colors duration-300 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
-        
+        {deferredPrompt && (
+  <button 
+    onClick={handleInstallPWA}
+    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-md transition flex items-center gap-1 cursor-pointer"
+  >
+    📲 Uygulamayı Yükle
+  </button>
+)}
         {/* Üst Bar */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
@@ -252,27 +281,28 @@ export default function App() {
             Simülasyonu Çalıştır
           </button>
         </div>
-{/* Akıllı Analiz Özet Kartı */}
-{comparisonResults && (
-  <div className={`p-4 rounded-xl mb-4 border text-sm ${isDarkMode ? 'bg-indigo-950/40 border-indigo-800 text-indigo-200' : 'bg-indigo-50 border-indigo-100 text-indigo-900'}`}>
-    <h3 className="font-bold text-xs uppercase tracking-wide mb-1">💡 Portföy Analiz Özeti</h3>
-    <p className="text-xs leading-relaxed">
-      {comparisonResults.ALTIN > comparisonResults.USD && comparisonResults.ALTIN > comparisonResults.BIST ? (
-        <span>Seçilen dönemde en yüksek getiriyi **Gram Altın** sağladı. </span>
-      ) : comparisonResults.BIST > comparisonResults.USD ? (
-        <span>Seçilen dönemde **BIST 100** diğer yatırım araçlarını geride bıraktı. </span>
-      ) : (
-        <span>Döviz bazlı yatırımlar portföy dengesini korudu. </span>
-      )}
-      <span>
-        TÜFE enflasyonu karşısında reel alım gücünüzü korumak için portföyünüzün en az **{comparisonResults.TUFE.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺** seviyesine ulaşması gerekiyordu.
-      </span>
-    </p>
-  </div>
-)}
+
         {/* Sonuç Kartları */}
         {comparisonResults && (
           <div className="mt-6 space-y-4">
+            
+            {/* Akıllı Analiz Özet Kartı */}
+            <div className={`p-4 rounded-xl border text-sm ${isDarkMode ? 'bg-indigo-950/40 border-indigo-800 text-indigo-200' : 'bg-indigo-50 border-indigo-100 text-indigo-900'}`}>
+              <h3 className="font-bold text-xs uppercase tracking-wide mb-1">💡 Portföy Analiz Özeti</h3>
+              <p className="text-xs leading-relaxed">
+                {comparisonResults.ALTIN > comparisonResults.USD && comparisonResults.ALTIN > comparisonResults.BIST ? (
+                  <span>Seçilen dönemde en yüksek getiriyi Gram Altın sağladı. </span>
+                ) : comparisonResults.BIST > comparisonResults.USD ? (
+                  <span>Seçilen dönemde BIST 100 diğer yatırım araçlarını geride bıraktı. </span>
+                ) : (
+                  <span>Döviz bazlı yatırımlar portföy dengesini korudu. </span>
+                )}
+                <span>
+                  TÜFE enflasyonu karşısında reel alım gücünüzü korumak için portföyünüzün en az {comparisonResults.TUFE.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺ seviyesine ulaşması gerekiyordu.
+                </span>
+              </p>
+            </div>
+
             <div ref={resultCardRef} className={`p-4 rounded-xl border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
               <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-center mb-3">
                 <span className="text-[11px] font-bold text-indigo-500 uppercase">Cebinizden Çıkan Toplam Para</span>
