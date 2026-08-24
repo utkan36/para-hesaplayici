@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import {
   Chart as ChartJS,
@@ -22,7 +22,7 @@ ChartJS.register(
   Legend
 );
 
-const ARCHIVE_RATES = {
+const INITIAL_ARCHIVE_RATES = {
   "2021": { USD: 8.8, EUR: 10.4, ALTIN: 450, BIST: 1400, TUFE: 600 },
   "2022": { USD: 16.5, EUR: 17.3, ALTIN: 1000, BIST: 2400, TUFE: 950 },
   "2023": { USD: 23.8, EUR: 25.7, ALTIN: 1650, BIST: 5500, TUFE: 1550 },
@@ -32,22 +32,57 @@ const ARCHIVE_RATES = {
 };
 
 export default function App() {
+  const [archiveRates, setArchiveRates] = useState(INITIAL_ARCHIVE_RATES);
   const [calcMode, setCalcMode] = useState('dca');
   const [amount, setAmount] = useState(1000);
   const [startYear, setStartYear] = useState('2021');
   const [targetYear, setTargetYear] = useState('2026');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [comparisonResults, setComparisonResults] = useState(null);
+  const [isApiLoading, setIsApiLoading] = useState(true);
 
   const resultCardRef = useRef(null);
-  const years = Object.keys(ARCHIVE_RATES);
+  const years = Object.keys(archiveRates);
+
+  // Canlı Kur Çekme İşlemi (Ücretsiz Frankfurter API)
+  useEffect(() => {
+    async function fetchLiveRates() {
+      try {
+        const resUsd = await fetch('https://api.frankfurter.app/latest?from=USD&to=TRY');
+        const dataUsd = await resUsd.json();
+        
+        const resEur = await fetch('https://api.frankfurter.app/latest?from=EUR&to=TRY');
+        const dataEur = await resEur.json();
+
+        if (dataUsd?.rates?.TRY && dataEur?.rates?.TRY) {
+          const liveUsd = Number(dataUsd.rates.TRY.toFixed(2));
+          const liveEur = Number(dataEur.rates.TRY.toFixed(2));
+
+          setArchiveRates(prev => ({
+            ...prev,
+            "2026": {
+              ...prev["2026"],
+              USD: liveUsd,
+              EUR: liveEur
+            }
+          }));
+        }
+      } catch (err) {
+        console.error("Canlı kurlar çekilemedi, varsayılan veriler kullanılıyor:", err);
+      } finally {
+        setIsApiLoading(false);
+      }
+    }
+
+    fetchLiveRates();
+  }, []);
 
   const handleCalculate = () => {
     const selectedYears = years.filter(y => y >= startYear && y <= targetYear);
-    const target = ARCHIVE_RATES[targetYear];
+    const target = archiveRates[targetYear];
 
     if (calcMode === 'single') {
-      const start = ARCHIVE_RATES[startYear];
+      const start = archiveRates[startYear];
       setComparisonResults({
         totalInvested: amount,
         USD: amount * (target.USD / start.USD),
@@ -61,7 +96,7 @@ export default function App() {
       let totals = { USD: 0, EUR: 0, ALTIN: 0, BIST: 0, TUFE: 0 };
 
       selectedYears.forEach(year => {
-        const rates = ARCHIVE_RATES[year];
+        const rates = archiveRates[year];
         const yearlyContribution = amount * 12;
         totalInvested += yearlyContribution;
 
@@ -96,11 +131,11 @@ export default function App() {
   const chartData = {
     labels: years,
     datasets: [
-      { label: 'USD (Dolar)', data: years.map(y => ARCHIVE_RATES[y].USD), borderColor: '#10b981', tension: 0.3 },
-      { label: 'EUR (Euro)', data: years.map(y => ARCHIVE_RATES[y].EUR), borderColor: '#3b82f6', tension: 0.3 },
-      { label: 'Gram Altın (₺/100)', data: years.map(y => ARCHIVE_RATES[y].ALTIN / 100), borderColor: '#eab308', tension: 0.3 },
-      { label: 'BIST 100 (/100)', data: years.map(y => ARCHIVE_RATES[y].BIST / 100), borderColor: '#a855f7', tension: 0.3 },
-      { label: 'TÜFE (/100)', data: years.map(y => ARCHIVE_RATES[y].TUFE / 100), borderColor: '#ef4444', tension: 0.3 },
+      { label: 'USD (Dolar)', data: years.map(y => archiveRates[y].USD), borderColor: '#10b981', tension: 0.3 },
+      { label: 'EUR (Euro)', data: years.map(y => archiveRates[y].EUR), borderColor: '#3b82f6', tension: 0.3 },
+      { label: 'Gram Altın (₺/100)', data: years.map(y => archiveRates[y].ALTIN / 100), borderColor: '#eab308', tension: 0.3 },
+      { label: 'BIST 100 (/100)', data: years.map(y => archiveRates[y].BIST / 100), borderColor: '#a855f7', tension: 0.3 },
+      { label: 'TÜFE (/100)', data: years.map(y => archiveRates[y].TUFE / 100), borderColor: '#ef4444', tension: 0.3 },
     ],
   };
 
@@ -122,9 +157,14 @@ export default function App() {
         
         {/* Üst Bar */}
         <div className="flex justify-between items-center mb-6">
-          <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-full text-xs font-semibold uppercase tracking-wide">
-            Finansal Portföy Simülatörü
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-full text-xs font-semibold uppercase tracking-wide">
+              Finansal Portföy Simülatörü
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-medium">
+              {isApiLoading ? 'Kur Yükleniyor...' : `USD: ₺${archiveRates["2026"].USD} | EUR: ₺${archiveRates["2026"].EUR}`}
+            </span>
+          </div>
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${isDarkMode ? 'bg-slate-700 border-slate-600 text-amber-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`}
@@ -133,7 +173,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* Hazır Senaryolar (Presets) */}
+        {/* Hazır Senaryolar */}
         <div className="mb-6">
           <label className="block text-[10px] font-bold uppercase text-slate-400 mb-2">⚡ Hızlı Senaryolar</label>
           <div className="flex flex-wrap gap-2">
@@ -213,7 +253,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* Sonuç Kartları ve İndir Butonu */}
+        {/* Sonuç Kartları */}
         {comparisonResults && (
           <div className="mt-6 space-y-4">
             <div ref={resultCardRef} className={`p-4 rounded-xl border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
