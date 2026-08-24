@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,13 +32,14 @@ const ARCHIVE_RATES = {
 };
 
 export default function App() {
-  const [calcMode, setCalcMode] = useState('dca'); // 'single' (Tek Seferlik) veya 'dca' (Düzenli)
+  const [calcMode, setCalcMode] = useState('dca');
   const [amount, setAmount] = useState(1000);
   const [startYear, setStartYear] = useState('2021');
   const [targetYear, setTargetYear] = useState('2026');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [comparisonResults, setComparisonResults] = useState(null);
 
+  const resultCardRef = useRef(null);
   const years = Object.keys(ARCHIVE_RATES);
 
   const handleCalculate = () => {
@@ -45,7 +47,6 @@ export default function App() {
     const target = ARCHIVE_RATES[targetYear];
 
     if (calcMode === 'single') {
-      // Tek seferlik toplu para hesabı
       const start = ARCHIVE_RATES[startYear];
       setComparisonResults({
         totalInvested: amount,
@@ -56,16 +57,14 @@ export default function App() {
         TUFE: amount * (target.TUFE / start.TUFE),
       });
     } else {
-      // Her ay düzenli yatırım (DCA) hesabı (Yılda 12 ay üzerinden hesaplanır)
       let totalInvested = 0;
       let totals = { USD: 0, EUR: 0, ALTIN: 0, BIST: 0, TUFE: 0 };
 
       selectedYears.forEach(year => {
         const rates = ARCHIVE_RATES[year];
-        const yearlyContribution = amount * 12; // Yıllık biriken tutar
+        const yearlyContribution = amount * 12;
         totalInvested += yearlyContribution;
 
-        // O yılın birikiminin hedef yıla göre değerlenmesi
         totals.USD += yearlyContribution * (target.USD / rates.USD);
         totals.EUR += yearlyContribution * (target.EUR / rates.EUR);
         totals.ALTIN += yearlyContribution * (target.ALTIN / rates.ALTIN);
@@ -73,11 +72,25 @@ export default function App() {
         totals.TUFE += yearlyContribution * (target.TUFE / rates.TUFE);
       });
 
-      setComparisonResults({
-        totalInvested,
-        ...totals
-      });
+      setComparisonResults({ totalInvested, ...totals });
     }
+  };
+
+  const handleDownloadImage = async () => {
+    if (!resultCardRef.current) return;
+    const canvas = await html2canvas(resultCardRef.current);
+    const image = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = image;
+    link.download = `yatirim-analizi-${startYear}-${targetYear}.png`;
+    link.click();
+  };
+
+  const applyPreset = (presetAmount, presetStart, presetTarget, mode) => {
+    setAmount(presetAmount);
+    setStartYear(presetStart);
+    setTargetYear(presetTarget);
+    setCalcMode(mode);
   };
 
   const chartData = {
@@ -120,7 +133,26 @@ export default function App() {
           </button>
         </div>
 
-        {/* Sekmeler (Tabs) */}
+        {/* Hazır Senaryolar (Presets) */}
+        <div className="mb-6">
+          <label className="block text-[10px] font-bold uppercase text-slate-400 mb-2">⚡ Hızlı Senaryolar</label>
+          <div className="flex flex-wrap gap-2">
+            <button 
+              onClick={() => applyPreset(1000, '2021', '2026', 'dca')}
+              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-indigo-600 dark:text-indigo-300 rounded-lg text-xs font-medium transition"
+            >
+              5 Yıllık Düzenli Birikim (1.000 TL)
+            </button>
+            <button 
+              onClick={() => applyPreset(50000, '2022', '2026', 'single')}
+              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-indigo-600 dark:text-indigo-300 rounded-lg text-xs font-medium transition"
+            >
+              2022 Toplu Para (50.000 TL)
+            </button>
+          </div>
+        </div>
+
+        {/* Sekmeler */}
         <div className="flex p-1 bg-slate-100 dark:bg-slate-700/50 rounded-xl mb-6">
           <button 
             onClick={() => { setCalcMode('dca'); setComparisonResults(null); }}
@@ -134,15 +166,6 @@ export default function App() {
           >
             💰 Tek Seferlik Toplu Para
           </button>
-        </div>
-
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold">
-            {calcMode === 'dca' ? 'Aylık Birikim Simülasyonu' : 'Toplu Para Değerleme'}
-          </h1>
-          <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            {calcMode === 'dca' ? 'Seçilen tarihler arasında her ay kenara koyduğunuz tutarın büyüme analizi' : 'Tek seferde yatırılan paranın yıllar içindeki reel değişimi'}
-          </p>
         </div>
 
         {/* Form */}
@@ -190,48 +213,57 @@ export default function App() {
           </button>
         </div>
 
-        {/* Sonuç Kartları */}
+        {/* Sonuç Kartları ve İndir Butonu */}
         {comparisonResults && (
-          <div className="mt-6 space-y-3">
-            <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-center">
-              <span className="text-[11px] font-bold text-indigo-500 uppercase">Cebinizden Çıkan Toplam Para</span>
-              <div className="text-xl font-extrabold text-indigo-600 mt-0.5">
-                {comparisonResults.totalInvested.toLocaleString('tr-TR')} ₺
+          <div className="mt-6 space-y-4">
+            <div ref={resultCardRef} className={`p-4 rounded-xl border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
+              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-center mb-3">
+                <span className="text-[11px] font-bold text-indigo-500 uppercase">Cebinizden Çıkan Toplam Para</span>
+                <div className="text-xl font-extrabold text-indigo-600 mt-0.5">
+                  {comparisonResults.totalInvested.toLocaleString('tr-TR')} ₺
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-center">
+                <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                  <span className="text-[10px] font-bold text-emerald-500 uppercase">Dolar</span>
+                  <div className="text-sm font-extrabold text-emerald-600 mt-1">
+                    {comparisonResults.USD.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
+                  </div>
+                </div>
+                <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                  <span className="text-[10px] font-bold text-blue-500 uppercase">Euro</span>
+                  <div className="text-sm font-extrabold text-blue-600 mt-1">
+                    {comparisonResults.EUR.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
+                  </div>
+                </div>
+                <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                  <span className="text-[10px] font-bold text-amber-500 uppercase">Altın</span>
+                  <div className="text-sm font-extrabold text-amber-600 mt-1">
+                    {comparisonResults.ALTIN.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
+                  </div>
+                </div>
+                <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                  <span className="text-[10px] font-bold text-purple-500 uppercase">BIST 100</span>
+                  <div className="text-sm font-extrabold text-purple-600 mt-1">
+                    {comparisonResults.BIST.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
+                  </div>
+                </div>
+                <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl col-span-2 md:col-span-1">
+                  <span className="text-[10px] font-bold text-rose-500 uppercase">TÜFE</span>
+                  <div className="text-sm font-extrabold text-rose-600 mt-1">
+                    {comparisonResults.TUFE.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-center">
-              <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                <span className="text-[10px] font-bold text-emerald-500 uppercase">Dolar</span>
-                <div className="text-sm font-extrabold text-emerald-600 mt-1">
-                  {comparisonResults.USD.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
-                </div>
-              </div>
-              <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                <span className="text-[10px] font-bold text-blue-500 uppercase">Euro</span>
-                <div className="text-sm font-extrabold text-blue-600 mt-1">
-                  {comparisonResults.EUR.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
-                </div>
-              </div>
-              <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                <span className="text-[10px] font-bold text-amber-500 uppercase">Altın</span>
-                <div className="text-sm font-extrabold text-amber-600 mt-1">
-                  {comparisonResults.ALTIN.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
-                </div>
-              </div>
-              <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                <span className="text-[10px] font-bold text-purple-500 uppercase">BIST 100</span>
-                <div className="text-sm font-extrabold text-purple-600 mt-1">
-                  {comparisonResults.BIST.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
-                </div>
-              </div>
-              <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl col-span-2 md:col-span-1">
-                <span className="text-[10px] font-bold text-rose-500 uppercase">TÜFE</span>
-                <div className="text-sm font-extrabold text-rose-600 mt-1">
-                  {comparisonResults.TUFE.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
-                </div>
-              </div>
-            </div>
+            <button 
+              onClick={handleDownloadImage}
+              className="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              📸 Sonucu Görsel (PNG) Olarak İndir / Paylaş
+            </button>
           </div>
         )}
 
