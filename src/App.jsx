@@ -252,7 +252,24 @@ export default function App() {
             Simülasyonu Çalıştır
           </button>
         </div>
-
+{/* Akıllı Analiz Özet Kartı */}
+{comparisonResults && (
+  <div className={`p-4 rounded-xl mb-4 border text-sm ${isDarkMode ? 'bg-indigo-950/40 border-indigo-800 text-indigo-200' : 'bg-indigo-50 border-indigo-100 text-indigo-900'}`}>
+    <h3 className="font-bold text-xs uppercase tracking-wide mb-1">💡 Portföy Analiz Özeti</h3>
+    <p className="text-xs leading-relaxed">
+      {comparisonResults.ALTIN > comparisonResults.USD && comparisonResults.ALTIN > comparisonResults.BIST ? (
+        <span>Seçilen dönemde en yüksek getiriyi **Gram Altın** sağladı. </span>
+      ) : comparisonResults.BIST > comparisonResults.USD ? (
+        <span>Seçilen dönemde **BIST 100** diğer yatırım araçlarını geride bıraktı. </span>
+      ) : (
+        <span>Döviz bazlı yatırımlar portföy dengesini korudu. </span>
+      )}
+      <span>
+        TÜFE enflasyonu karşısında reel alım gücünüzü korumak için portföyünüzün en az **{comparisonResults.TUFE.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺** seviyesine ulaşması gerekiyordu.
+      </span>
+    </p>
+  </div>
+)}
         {/* Sonuç Kartları */}
         {comparisonResults && (
           <div className="mt-6 space-y-4">
