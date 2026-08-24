@@ -47,7 +47,7 @@ export default function App() {
   const resultCardRef = useRef(null);
   const years = Object.keys(archiveRates);
 
-  // PWA Yukleme Prompt Dinleyicisi
+  // PWA Yükleme Prompt Dinleyicisi
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
@@ -61,7 +61,7 @@ export default function App() {
     };
   }, []);
 
-  // Canli Kur Cekme
+  // Canlı Kur Çekme
   useEffect(() => {
     async function fetchLiveRates() {
       try {
@@ -137,6 +137,11 @@ export default function App() {
     }
   };
 
+  // Sayfa açıldığında veya oranlar güncellendiğinde otomatik hesapla
+  useEffect(() => {
+    handleCalculate();
+  }, [archiveRates, startYear, targetYear, amount, calcMode]);
+
   const handleDownloadImage = async () => {
     if (!resultCardRef.current) return;
     const canvas = await html2canvas(resultCardRef.current);
@@ -146,7 +151,8 @@ export default function App() {
     link.download = `yatirim-analizi-${startYear}-${targetYear}.png`;
     link.click();
   };
-const getShareableUrl = () => {
+
+  const getShareableUrl = () => {
     const url = new URL(window.location.href);
     url.searchParams.set('amount', amount);
     url.searchParams.set('start', startYear);
@@ -160,6 +166,7 @@ const getShareableUrl = () => {
     const message = `Finansal Simülasyon Sonucum: ${startYear}-${targetYear} yılları arası ${amount.toLocaleString('tr-TR')} ₺ yatırımı incele: ${shareUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
+
   const applyPreset = (presetAmount, presetStart, presetTarget, mode) => {
     setAmount(presetAmount);
     setStartYear(presetStart);
@@ -366,7 +373,22 @@ const getShareableUrl = () => {
               </div>
             </div>
 
-           className="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700
+            {/* Butonlar */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+              <button 
+                onClick={handleDownloadImage}
+                className="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                📸 Görsel İndir
+              </button>
+              <button 
+                onClick={handleShareWhatsApp}
+                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                💬 WhatsApp'ta Paylaş
+              </button>
+            </div>
+
           </div>
         )}
 
