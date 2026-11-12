@@ -1,0 +1,7 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { calculateDebtRefinance } from "../lib/debt-refinance.ts";
+
+test("yapılandırmanın toplam tasarrufunu ve başa baş ayını hesaplar", () => { const result = calculateDebtRefinance({ remainingPrincipal: 100_000, currentMonthlyPayment: 12_000, currentRemainingMonths: 12, newMonthlyRatePercent: 1, newTermMonths: 12, refinancingCosts: 2_000 }); assert.equal(result.verdict, "advantageous"); assert.ok(result.totalSavings > 0); assert.ok(result.breakEvenMonths !== null); });
+test("düşük taksite rağmen uzayan vadenin ek maliyetini gösterir", () => { const result = calculateDebtRefinance({ remainingPrincipal: 100_000, currentMonthlyPayment: 10_000, currentRemainingMonths: 12, newMonthlyRatePercent: 2, newTermMonths: 24, refinancingCosts: 5_000 }); assert.equal(result.verdict, "costlier"); assert.ok(result.monthlyRelief > 0); assert.ok(result.totalSavings < 0); });
+test("faizsiz teklifi ve geçersiz girdileri güvenli işler", () => { const result = calculateDebtRefinance({ remainingPrincipal: 120_000, currentMonthlyPayment: 11_000, currentRemainingMonths: 12, newMonthlyRatePercent: 0, newTermMonths: 12, refinancingCosts: 0 }); assert.equal(result.newMonthlyPayment, 10_000); assert.equal(result.breakEvenMonths, 0); assert.throws(() => calculateDebtRefinance({ remainingPrincipal: 0, currentMonthlyPayment: 1, currentRemainingMonths: 12, newMonthlyRatePercent: 1, newTermMonths: 12, refinancingCosts: 0 }), /sıfırdan büyük/i); });

@@ -1,0 +1,6 @@
+import type { Metadata } from "next";
+import SeoLauncher from "../seo-launcher";
+import SeoShell from "../seo-shell";
+
+export const metadata: Metadata = { title: "Geçmiş Para Değeri Hesaplama | Para Hesaplayıcı", description: "Geçmişteki bir tutarın bugün altın, dolar, BIST, mevduat, Bitcoin veya enflasyon karşısındaki değerini ücretsiz hesaplayın.", alternates: { canonical: "/gecmis-para-degeri" }, openGraph: { title: "Geçmiş Para Değeri Hesaplama", description: "O günkü paranız bugün ne ederdi?", url: "/gecmis-para-degeri" } };
+export default function Page() { return <SeoShell eyebrow="Paranın zaman makinesi" title="Geçmişteki para bugün ne kadar eder?" description="Bir tutarın seçtiğin tarihten bugüne altın, dolar, BIST, mevduat, Bitcoin veya enflasyon karşısındaki tarihsel değerini gör." faq={[{ question: "Geçmiş para değeri nasıl hesaplanır?", answer: "Seçilen ölçütün başlangıç ve bitiş tarihindeki değerleri karşılaştırılır; geçmiş tutar aynı değişim katsayısıyla bugüne taşınır." }, { question: "Sonuç yatırım getirisi midir?", answer: "Sonuç tarihsel bir karşılaştırmadır. Vergi, makas, komisyon ve kişisel işlem koşulları ayrıca değişebilir." }]}><SeoLauncher kind="past" /></SeoShell>; }

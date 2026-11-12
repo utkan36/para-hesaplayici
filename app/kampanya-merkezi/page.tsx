@@ -1,0 +1,8 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import CampaignCenter from "./campaign-center";
+import SeoTracker from "../seo-tracker";
+
+export const metadata: Metadata = { title: "Finans İçerik Kampanyaları | Kampanya Merkezi", description: "Hesaplamaya bağlı 10 hazır finans içerik fikri, takip edilebilir bağlantı ve sosyal medya metni.", alternates: { canonical: "/kampanya-merkezi" }, openGraph: { title: "Para Hesaplayıcı Kampanya Merkezi", description: "Hazır finans senaryolarını gerçek hesaplara dönüştür ve paylaş.", url: "/kampanya-merkezi" } };
+
+export default function Page() { return <main className="campaign-center-page"><SeoTracker page="kampanya_merkezi" /><header><Link className="brand" href="/"><span className="brand-mark">₺</span><span><strong>Para Hesaplayıcı</strong><small>Kampanya Merkezi</small></span></Link><nav><Link href="/icerik-studyosu">İçerik Stüdyosu</Link><Link href="/hesaplama-araclari">Araçlar</Link></nav></header><section className="campaign-center-hero"><span>Dağıtıma hazır içerikler</span><h1>Bir hesap seç.<br />Merak uyandır. Ölç.</h1><p>Her senaryo gerçek hesaplama akışına gider. Sonuç, kullanıcı hesabı tamamladığında oluşur; metinler sonuç iddiası değil, merak kancasıdır.</p><div><b>10 hazır senaryo</b><b>Takip edilebilir bağlantı</b><b>Gerçek kullanım verisi</b></div></section><CampaignCenter /><section className="campaign-center-note"><span>İçerik üreticileri için</span><h2>Sonucu kendi markanla yayınlamak ister misin?</h2><p>Hesabı tamamladıktan sonra İçerik Stüdyosu’nda karta dönüştür; logo ve marka rengi demosunu Creator Pro’da dene.</p><Link href="/creator-pro?utm_source=kampanya_merkezi&utm_campaign=creator_pro">Creator Pro’yu incele →</Link></section></main>; }

@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788232071664,
+      "tag": "0000_icy_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788275039903,
+      "tag": "0001_special_dragon_lord",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788316357437,
+      "tag": "0002_dashing_mister_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788383955921,
+      "tag": "0003_sticky_jimmy_woo",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788384803866,
+      "tag": "0004_rainy_bucky",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794460808043,
+      "tag": "0005_absurd_forgotten_one",
+      "breakpoints": true
+    }
+  ]
+}

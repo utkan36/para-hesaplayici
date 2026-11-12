@@ -1,0 +1,9 @@
+import type { Metadata } from "next";
+import DebtCalculator from "../debt-calculator";
+import DebtPayoffPlanner from "../debt-payoff-planner";
+import SeoShell from "../seo-shell";
+import DebtDecisionNav from "../debt-decision-nav";
+
+export const metadata: Metadata = { title: "Borç Hesaplama | Taksit ve Toplam Faiz", description: "Borç veya kredi tutarı, aylık faiz ve vadeye göre aylık taksiti, toplam geri ödemeyi ve faiz yükünü ücretsiz hesaplayın.", alternates: { canonical: "/borc-hesaplama" }, openGraph: { title: "Borç ve Kredi Taksiti Hesaplama", description: "Aylık taksit, toplam ödeme ve faiz yükünü görün.", url: "/borc-hesaplama" } };
+type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+export default async function Page({ searchParams }: Props) { const params = await searchParams; const value = (key: string, fallback: string) => typeof params[key] === "string" ? params[key] : fallback; return <SeoShell eyebrow="Borç planlama" title="Borç taksiti ve borçsuzluk planı" description="Tek borcun taksitini hesapla veya bütün borçlarını birlikte ekleyerek faiz çığı ve kartopu yöntemleriyle ne zaman borçsuz kalacağını gör." faq={[{ question: "Faiz çığı yöntemi nedir?", answer: "Asgari ödemelerden kalan ek bütçeyi aylık faizi en yüksek borca yönlendirir. Matematiksel olarak toplam faizi azaltmayı hedefler." }, { question: "Borç kartopu yöntemi nedir?", answer: "Ek bütçeyi bakiyesi en küçük borca yönlendirir. İlk borcun daha erken kapanması motivasyon sağlayabilir; fakat her zaman en düşük faizi üretmez." }, { question: "Banka teklifim neden farklı olabilir?", answer: "Vergi, ücret, gecikme, erken kapama bedeli, günlük faiz ve yuvarlama yöntemi gerçek ödeme planını değiştirebilir." }]}><DebtCalculator initial={{ principal: value("principal", "100000"), rate: value("rate", "3.5"), months: value("months", "12") }} /><DebtPayoffPlanner /><DebtDecisionNav /></SeoShell>; }

@@ -1,0 +1,10 @@
+"use client";
+
+import { useState } from "react";
+type Rating = "yes" | "partial" | "no";
+
+export default function FeedbackPanel({ tool }: { tool: string }) {
+  const [rating, setRating] = useState<Rating | null>(null); const [message, setMessage] = useState(""); const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  async function send() { if (!rating || status === "sending" || status === "sent") return; setStatus("sending"); try { const response = await fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rating, tool, message }) }); if (!response.ok) throw new Error("feedback_failed"); setStatus("sent"); } catch { setStatus("error"); } }
+  return <section className="feedback-panel" aria-labelledby="feedback-title"><div><span>30 saniyelik geri bildirim</span><h2 id="feedback-title">Bu hesap işine yaradı mı?</h2><p>Kişisel bilgi istemiyoruz. Cevabın hangi geliştirmeyi önce yapacağımızı belirleyecek.</p></div>{status === "sent" ? <div className="feedback-thanks"><strong>Teşekkürler.</strong><span>Geri bildirimin anonim olarak kaydedildi.</span></div> : <div className="feedback-form"><div className="feedback-ratings" role="group" aria-label="Hesabın faydası">{([['yes','Evet'],['partial','Kısmen'],['no','Hayır']] as const).map(([value, label]) => <button className={rating === value ? "selected" : ""} key={value} onClick={() => { setRating(value); setStatus("idle"); }} type="button">{label}</button>)}</div>{rating && <div className="feedback-comment"><textarea maxLength={300} onChange={(event) => setMessage(event.target.value)} placeholder="İstersen neyin eksik olduğunu yazabilirsin…" rows={3} value={message} /><button disabled={status === "sending"} onClick={() => void send()} type="button">{status === "sending" ? "Gönderiliyor…" : "Geri bildirimi gönder"}</button></div>}{status === "error" && <p role="alert">Geri bildirim gönderilemedi. Biraz sonra tekrar deneyebilirsin.</p>}</div>}</section>;
+}

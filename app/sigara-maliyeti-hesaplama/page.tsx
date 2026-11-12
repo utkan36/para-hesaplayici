@@ -1,0 +1,6 @@
+import type { Metadata } from "next";
+import SeoLauncher from "../seo-launcher";
+import SeoShell from "../seo-shell";
+
+export const metadata: Metadata = { title: "Sigara Maliyeti Hesaplama | Aylık ve Toplam", description: "Sigara harcamanızın toplamını ve aynı para altın, dolar, BIST, mevduat veya Bitcoin'e ayrılsaydı bugünkü değerini hesaplayın.", alternates: { canonical: "/sigara-maliyeti-hesaplama" }, openGraph: { title: "Sigaranın Gerçek Maliyeti", description: "Aylık sigara harcaması birikseydi bugün ne olurdu?", url: "/sigara-maliyeti-hesaplama" } };
+export default function Page() { return <SeoShell eyebrow="Alışkanlık maliyeti" title="Sigara için harcadığın para bugün ne olurdu?" description="Aylık sigara giderinin toplamını ve aynı katkılar farklı yatırım araçlarına ayrılsaydı oluşabilecek tarihsel değeri karşılaştır." faq={[{ question: "Sigara maliyeti nasıl hesaplanır?", answer: "Başlangıçtaki aylık harcama, yıllık fiyat artışıyla dönem boyunca toplanır ve aynı katkı planı tarihsel yatırım verileriyle karşılaştırılır." }, { question: "Sağlık maliyeti hesaba dahil mi?", answer: "Hayır. Sonuç yalnız girilen parasal harcamayı inceler; sağlık etkilerini veya dolaylı maliyetleri parasallaştırmaz." }]}><SeoLauncher kind="cigarette" /></SeoShell>; }

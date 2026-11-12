@@ -1,0 +1,7 @@
+import type { Metadata } from "next";
+import PurchaseDecisionCalculator from "../purchase-decision-calculator";
+import SeoLauncher from "../seo-launcher";
+import SeoShell from "../seo-shell";
+
+export const metadata: Metadata = { title: "Harcamanın Fırsat Maliyeti Hesaplama", description: "Satın alma ve parayı ayırma seçeneklerini karşılaştırın. Geçmiş harcamaların tarihsel yatırım karşılıklarını hesaplayın.", alternates: { canonical: "/harcamanin-firsat-maliyeti" }, openGraph: { title: "Harcamanın Fırsat Maliyeti", description: "Planlanan ve geçmiş harcamaların fırsat maliyetini karşılaştırın.", url: "/harcamanin-firsat-maliyeti" } };
+export default function Page() { return <SeoShell eyebrow="Büyük harcama" title="Bir harcamanın fırsat maliyetini gör" description="Planladığın harcama için satın alma ve parayı ayırma seçeneklerini karşılaştır. Geçmiş bir harcama için tarihsel yatırım alternatiflerini incele." faq={[{ question: "Fırsat maliyeti nedir?", answer: "Bir tercih yaparken vazgeçilen en güçlü alternatifin değeridir. Planlanan bir harcamada varsayımsal gelecek değerlerini, geçmiş bir harcamada tarihsel karşılıkları görebilirsin." }, { question: "Harcamanın yanlış olduğu anlamına mı gelir?", answer: "Hayır. Araç yalnız finansal alternatifi görünür kılar; harcamanın sağladığı faydayı veya kişisel değeri puanlamaz." }]}><PurchaseDecisionCalculator /><SeoLauncher kind="opportunity" /></SeoShell>; }
